@@ -1,7 +1,6 @@
 from socket import *
 import threading
 import time
-import sys
 
 SERVERNAME = 'localhost'
 SERVERPORT = 5000
@@ -20,14 +19,27 @@ def check_content():
 # Receber conteúdo
 # Precisa rodar o tempo todo (pode receber mensagem a qualquer momento)
 def receive_content():
-    output, serveradress = client.recvfrom(BUFFER_SIZE)
-    time.sleep(0.5)
-    content = output.decode()
-    queue_content.append(content)
-    check_content()
+    try:
+        while True:
+            output, serveradress = client.recvfrom(BUFFER_SIZE)
+            time.sleep(0.5)
+            content = output.decode()
+            queue_content.append(content)
+            check_content()
+    except:
+        pass
 
 # Enviar conteúdo
 # Precisa rodar apenas quando vai enviar algum conteúdo
+def handle_input_content():
+    while True:
+        data = input("")
+        if 'bye' == data: 
+            client.close()
+            break
+        data = f"{name}: {data}"
+        send_content(data)
+
 def send_content(content):
     # True -> Deu certo // False -> Deu errado :(
     try:
@@ -40,23 +52,10 @@ def enter_session(name):
     content = f"O usuário {name} entrou na sala"
     send_content(content)   
 
-def main():   
-    name = input("Insira o seu nome: ")
-    enter_session(name)
-    
-    while True:
-        # uma threading que vai estar sempre rodando recebendo o conteúdo
-        threading.Thread(target=receive_content).start()
-        time.sleep(1)
-        data = input("")
-        data = f"{name}: {data}"     
-        # Basicamente, vamos pegar a informação que está em STR e converter para Byte, em seguida colocamos uma tupla que tem o nome do servidor destino e a porta
-        send_content(data)
-        
-        if 'bye' in data: 
-            sys.exit()           
-            break
+name = input("Insira o seu nome: ")
+enter_session(name)
 
-    client.close()
-
-main()
+thread_receive = threading.Thread(target=receive_content)
+thread_receive.start()
+thread_send = threading.Thread(target=handle_input_content)
+thread_send.start()
