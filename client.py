@@ -2,7 +2,7 @@ from socket import *
 import threading
 import time
 
-SERVERNAME = '172.20.4.17'
+SERVERNAME = 'localhost'
 SERVERPORT = 5000
 BUFFER_SIZE = 1024 # Tamanho do buffer especificado pelos requisitos do projeto
 # Socket do client
