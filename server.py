@@ -38,8 +38,11 @@ def receive_content():
             clients.append(clientadress)
             content = output.decode() + f' às {datetime.now()}'
         else:
-            name, data = (output.decode().split(":"))[0], (output.decode().split(":"))[1]
-            content = f"{ip}:{port}/~{name}: {data} {receive_time}"
+            if 'bye' not in output.decode():
+                name, data = (output.decode().split(":"))[0], (output.decode().split(":"))[1]
+                content = f"{ip}:{port}/~{name}: {data} {receive_time}"
+            else:
+                content = output.decode()
         
         print(content, clientadress)
         queue_content['adress'].append(clientadress)
@@ -52,7 +55,7 @@ def receive_content():
 
 # fiz essa função para caso a fila sempre seja de tamanho um (caso seja, nem é necessário construir um dicionário, bastam dois parâmetros, mas veremos)
 def verify_content2():
-    if queue_content['content'][0] not in 'bye':
+    if 'bye' not in queue_content['content'][0]:
         print(clients)
         for client in clients:
             print(client)
@@ -63,6 +66,7 @@ def verify_content2():
     # Situação em que o usuário enviou um "bye" e vai ser removido da lista de usuários
     else:
         clients.remove(queue_content['adress'][0])
+        send_content("Você saiu da sessão. Até a próxima :)", queue_content['adress'][0])
     # Tirar o conteúdo da fila (tanto de endereço como de conteúdo)
     queue_content['adress'].pop(0)
     queue_content['content'].pop(0)
