@@ -1,0 +1,2 @@
+SERVERNAME = 'localhost'
+SERVERPORT = 5000
