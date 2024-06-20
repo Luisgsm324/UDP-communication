@@ -2,7 +2,8 @@
 endereco = "message.txt"
 from constants import *
 
-def send_packages(content, sendto, type_user, filetxt, adress, clients = None):
+# tem que fazer a divisao por pacotes aqui, talkei?
+def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
   with open(filetxt, mode="w", encoding='utf-8') as file:
       file.write(content)
       

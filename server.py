@@ -24,7 +24,10 @@ def receive_content():
         ip, port = clientadress[0], clientadress[1]
         receive_time = datetime.now()
         
+        print(clients)
+        
         if "bye" in content:
+            name, data = (content.split(":"))[0], (content.split(":"))[1]
             content = f"O usuário {name} saiu da sessão :("
             clients.remove(clientadress)
         elif "entrou" in content:
@@ -34,7 +37,6 @@ def receive_content():
             name, data = (content.split(":"))[0], (content.split(":"))[1]
             content = f"{ip}:{port}/~{name}: {data} {receive_time}"
             
-        
         send_packages(content, server.sendto, "server", "receive.txt", clientadress, clients)
         
     except Exception as e:
