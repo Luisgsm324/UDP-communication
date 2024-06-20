@@ -10,7 +10,7 @@ from packages_functions import *
 serverport = 5000
 buffer_size = 1024
 server = socket(AF_INET, SOCK_DGRAM)
-server.bind(("", serverport))
+server.bind(("localhost", serverport))
 
 # Armazenar o conteúdo e os autores
 queue_content = {
@@ -23,40 +23,57 @@ clients_content = {}
 # Armazenar quem está conectado na sessão (pensar um pouco melhor sobre o primeiro dict e essa lista)
 clients = []
 
-server.sendfile
-
 print(f"Servidor iniciado com sucesso às {datetime.now()}")
 
 def receive_content():
-    try: 
-        while True:
-            output, clientadress = server.recvfrom(buffer_size)
+    try:
+        with open("receive.txt", mode="w") as file:
+            while True:
+                output, clientadress = server.recvfrom(buffer_size)
+                print(output)
+                content = output.decode()    
+                
+                ip, port = clientadress[0], clientadress[1]
+                receive_time = datetime.now()
+                
+                print("OI")
+                data= "awdwadawdwa"
+                file.write(data.encode())
+                
+            
+        
+    except: print("aaaaaaa")
 
-            content = output.decode()
+# def receive_content():
+#     try: 
+#         while True:
+#             output, clientadress = server.recvfrom(buffer_size)
+
+#             content = output.decode()
             
-            ip, port = clientadress[0], clientadress[1]
-            receive_time = datetime.now()
+            # ip, port = clientadress[0], clientadress[1]
+            # receive_time = datetime.now()
             
-            if content == "/END/":
-                content = clients_content[clientadress]
-                if clientadress not in clients:
-                    clients.append(clientadress)
-                    content = f'{content} às {datetime.now()}'
-                    print(content)
-                else:
-                    name, data = (content.split(":"))[0], (content.split(":"))[1]
-                    if 'bye' not in data:
-                        clients_content[clientadress] = f"{ip}:{port}/~{name}: {data} {receive_time}"
-                    else:
-                        clients_content[clientadress] = f"O usuário {name} saiu da sessão :("
-                        clients.remove(clientadress)
+            # if content == "/END/":
+            #     content = clients_content[clientadress]
+            #     if clientadress not in clients:
+            #         clients.append(clientadress)
+            #         content = f'{content} às {datetime.now()}'
+            #         print(content)
+            #     else:
+            #         name, data = (content.split(":"))[0], (content.split(":"))[1]
+            #         if 'bye' not in data:
+            #             clients_content[clientadress] = f"{ip}:{port}/~{name}: {data} {receive_time}"
+            #         else:
+            #             clients_content[clientadress] = f"O usuário {name} saiu da sessão :("
+            #             clients.remove(clientadress)
                     
-                verify_content(clientadress)    
-                clients_content[clientadress] = ""
-            else:
-                past_content = clients_content[clientadress] if clientadress in clients_content else ""
-                clients_content[clientadress] = f"{past_content}{content}"
-    except: pass
+            #     verify_content(clientadress)    
+            #     clients_content[clientadress] = ""
+            # else:
+            #     past_content = clients_content[clientadress] if clientadress in clients_content else ""
+#                 clients_content[clientadress] = f"{past_content}{content}"
+#     except: pass
             
 
 # fiz essa função para caso a fila sempre seja de tamanho um (caso seja, nem é necessário construir um dicionário, bastam dois parâmetros, mas veremos)
