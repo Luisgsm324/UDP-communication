@@ -2,13 +2,20 @@
 endereco = "message.txt"
 from constants import *
 
-def send_packages(content, sendto):
-  with open("message.txt", mode="w", encoding='utf-8') as file:
+def send_packages(content, sendto, type_user, filetxt, adress, clients = None):
+  with open(filetxt, mode="w", encoding='utf-8') as file:
       file.write(content)
       
-  with open("message.txt", mode="rb") as file:
+  with open(filetxt, mode="rb") as file:
       for data in file.readlines():
-        sendto(data, (SERVERNAME, SERVERPORT))
+          if type_user == "server":
+             for client in clients:
+                  if adress != client:
+                    sendto(data, client)
+          else:
+              sendto(data, adress)
+
+            
   
   
 

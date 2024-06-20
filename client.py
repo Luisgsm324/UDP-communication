@@ -20,8 +20,8 @@ def receive_content():
             time.sleep(0.5)
             content = output.decode()
             print(content)
-    except:
-        pass
+    except Exception as e:
+        print(f"Error: {e}")
 
 # Enviar conteúdo
 # Precisa rodar apenas quando vai enviar algum conteúdo
@@ -38,7 +38,7 @@ def handle_input_content():
 
 def send_content(content):
     try:
-        send_packages(content, client.sendto)
+        send_packages(content, client.sendto, "client", "message.txt", (SERVERNAME, SERVERPORT))
     except: 
         print("Error")
         
