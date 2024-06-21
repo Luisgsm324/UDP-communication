@@ -1,6 +1,7 @@
 from socket import *
 from datetime import datetime
 from packages_functions import *
+import os
 
 # Socket do client
 # AF_INET -> USANDO IPV4
@@ -20,25 +21,29 @@ def receive_content():
     try:
         output, clientadress = server.recvfrom(buffer_size)
         content = output.decode()    
-                    
+
         ip, port = clientadress[0], clientadress[1]
-        receive_time = datetime.now()
-        
-        print(clients)
         
         if "bye" in content:
-            name, data = (content.split(":"))[0], (content.split(":"))[1]
-            content = f"O usuário {name} saiu da sessão :("
             clients.remove(clientadress)
+            
         elif "entrou" in content:
-            content = f'{content} às {receive_time}'
             clients.append(clientadress)
         else:
-            name, data = (content.split(":"))[0], (content.split(":"))[1]
-            content = f"{ip}:{port}/~{name}: {data} {receive_time}"
-            
-        send_packages(content, server.sendto, "server", "receive.txt", clientadress, clients)
+            if content.startswith("/START/"):
+                content = content.replace("/START/ ", f"{ip}:{port}/~") 
         
+        with open("receive.txt", mode="a", encoding='utf-8') as filea:
+            print(content, end="")
+            filea.write(content.replace("/START/ ", f"{ip}:{port}/~"))
+        
+                
+        if "/END/" in content:
+            send_packages("", server.sendto, "server", "receive.txt", clientadress, clients)
+            print()
+            os.remove("receive.txt")
+        
+                
     except Exception as e:
         print(f"Error: {e}")
 

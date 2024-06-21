@@ -1,6 +1,8 @@
 from socket import *
 import threading
 import time
+import os
+from datetime import datetime
 from packages_functions import *
 
 SERVERNAME = 'localhost'
@@ -14,37 +16,49 @@ client = socket(AF_INET, SOCK_DGRAM)
 # Precisa rodar o tempo todo (pode receber mensagem a qualquer momento)
 
 def receive_content():
-    try:
+    # try:
         while True:
             output, serveradress = client.recvfrom(BUFFER_SIZE)
-            time.sleep(0.5)
             content = output.decode()
-            print(content)
-    except Exception as e:
-        print(f"Error: {e}")
+            
+            if "/END/" not in content:
+                with open("message.txt", mode="a", encoding='utf-8') as file_append_1:
+                    file_append_1.write(content)
+            else:
+                time.sleep(1)
+                with open("message.txt", mode="rb") as file_read_1:
+                    print(f"{file_read_1.read().decode()}{content.replace("/END/", "")}")
+                    
+                os.remove("message.txt")
+
+                    
+    # except Exception as e:
+    #     print(f"Error: {e}")
 
 # Enviar conteúdo
 # Precisa rodar apenas quando vai enviar algum conteúdo
 def handle_input_content():
     while True:
         data = input("")
-        data = f"{name}: {data}"
         if 'bye' in data: 
-            send_content(data)
+            data = f"O usuário {name} saiu da sessão às {datetime.now()} /END/"
             print("Você saiu da sessão. Até a próxima :)")
             client.close()
             break
+        else:
+            data = f"/START/ {name}: {data}/END/"
+            
         send_content(data)
 
 def send_content(content):
-    try:
+    # try:
         send_packages(content, client.sendto, "client", "message.txt", (SERVERNAME, SERVERPORT))
-    except: 
-        print("Error")
+    # except: 
+    #     print("Error")
         
 # Entrar na sessão
 def enter_session(name):
-    content = f"O usuário {name} entrou na sala"
+    content = f"O usuário {name} entrou na sala às {datetime.now()} /END/"
     send_content(content)
 
 def main():
