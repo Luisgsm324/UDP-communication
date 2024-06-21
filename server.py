@@ -44,9 +44,9 @@ def receive_content():
                     content = f'{content} às {datetime.now()}'
                     print(content)
                 else:
-                    name, data = (content.split(":"))[0], (content.split(":"))[1]
+                    name, data = (content.split(":"))[0], (content.split(":"))[1:]
                     if 'bye' not in data:
-                        clients_content[clientadress] = f"{ip}:{port}/~{name}: {data} {receive_time}"
+                        clients_content[clientadress] = f"{ip}:{port}/~{name}: {''.join(data)} {receive_time}"
                     else:
                         clients_content[clientadress] = f"O usuário {name} saiu da sessão :("
                         clients.remove(clientadress)
