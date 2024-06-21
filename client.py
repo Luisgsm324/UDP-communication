@@ -40,7 +40,6 @@ def receive_content():
         pass
 
 # Enviar conteúdo
-# Precisa rodar apenas quando vai enviar algum conteúdo
 def handle_input_content():
     while True:
         data = input("")
@@ -53,7 +52,6 @@ def handle_input_content():
         else:
             data = f"/START/{name}: {data}/END/"
             send_content(data)
-            
 
 def send_content(content):
     try:

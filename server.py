@@ -16,7 +16,6 @@ clients = []
 
 print(f"Servidor iniciado com sucesso às {datetime.now()}")
 
-
 def receive_content():
     try:
         output, clientadress = server.recvfrom(buffer_size)
