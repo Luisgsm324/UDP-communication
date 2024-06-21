@@ -25,7 +25,6 @@ def receive_content():
                 with open("message.txt", mode="a", encoding='utf-8') as file_append_1:
                     file_append_1.write(content)
             else:
-                time.sleep(1)
                 with open("message.txt", mode="rb") as file_read_1:
                     data = file_read_1.read().decode() 
                 
@@ -47,13 +46,14 @@ def handle_input_content():
         data = input("")
         if 'bye' in data: 
             data = f"O usuário {name} saiu da sessão às /END/"
+            send_content(data)
             print("Você saiu da sessão. Até a próxima :)")
             client.close()
             break
         else:
             data = f"/START/{name}: {data}/END/"
+            send_content(data)
             
-        send_content(data)
 
 def send_content(content):
     try:

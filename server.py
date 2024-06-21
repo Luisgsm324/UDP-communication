@@ -24,7 +24,7 @@ def receive_content():
 
         ip, port = clientadress[0], clientadress[1]
         
-        if "bye" in content:
+        if "saiu da sessão" in content:
             clients.remove(clientadress)
             
         elif "entrou" in content:
@@ -41,7 +41,6 @@ def receive_content():
             print()
             os.remove("receive.txt")
         
-                
     except Exception as e:
         print(f"Error: {e}")
 
