@@ -33,7 +33,10 @@ def receive_content():
         
         with open("receive.txt", mode="a", encoding='utf-8') as filea:
             print(content, end="")
-            filea.write(content.replace("/START/", f"{ip}:{port}/~"))
+            content = content.replace("/START/", f"{ip}:{port}/~")
+            content = content.replace("/END/", f" {datetime.now()} /END/")
+            
+            filea.write(content)
         
         if "/END/" in content:
             send_packages("", server.sendto, "server", "receive.txt", clientadress, clients)

@@ -25,17 +25,19 @@ def receive_content():
                 with open("message.txt", mode="a", encoding='utf-8') as file_append_1:
                     file_append_1.write(content)
             else:
-                with open("message.txt", mode="rb") as file_read_1:
-                    data = file_read_1.read().decode() 
-                
-                    if len(data) > 250:
-                        data = f"{data.split("/END/")[1]}{content}"
-                    else: 
-                        data = content
+                with open("message.txt", mode="a", encoding='utf-8') as file_append_2:
+                    file_append_2.write(content)
                     
-                    print(data.replace("/END/", f" {datetime.now()}"))
-        
-                os.remove("message.txt")                
+                with open("message.txt", mode="rb") as file_read_1:
+                    data = file_read_1.read().decode()
+                    data = data.replace("/END/", "")
+                    # print(data)
+                    if "/START/" in data:
+                        print(content)
+                    else:
+                        print(data) 
+                        
+                os.remove("message.txt")
     except:
         pass
 
@@ -56,6 +58,8 @@ def handle_input_content():
 def send_content(content):
     try:
         send_packages(content, client.sendto, "client", "message.txt", (SERVERNAME, SERVERPORT))
+        with open("message.txt", mode="w", encoding='utf-8') as file5:
+            file5.write("")
     except: 
         print("Error")
         
