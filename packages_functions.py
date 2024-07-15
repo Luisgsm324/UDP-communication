@@ -13,15 +13,15 @@ def checksum_sender_calculator(content, block_length):
     number_blocks = math.ceil(len(content)/block_length)
     start = 0
     end = block_length
-    values = []
-    for _ in range(number_blocks):
-        checksum_value = content[start:end]
-        print(checksum_value)
+    checksum_value = 0
+    for _ in range(number_blocks): 
+        checksum_segment = content[start:end]
+        for byte_value in checksum_segment:
+            checksum_value += byte_value
         start = end
         end += block_length
-        values.append(checksum_value)
 
-    return values
+    return bin(checksum_value)
 
 
 def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
@@ -33,8 +33,8 @@ def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
         while True:
             # Monta pacote
             data = file1.read(500)
-            number = checksum_sender_calculator(data, 16)
-            print(len(data), number)
+            checksum = checksum_sender_calculator(data, 16)
+            print(len(data), checksum)
             #print(len(data))
             if not data: break
             # Envia
