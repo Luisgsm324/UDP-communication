@@ -58,7 +58,7 @@ def handle_input_content():
                 data = f"/START/{name}: {data}/END/"
                 send_content(data)
         else:
-            if 'hi, meu nome eh ' in data:
+            if data.startswith('hi, meu nome eh '):
                 name = data.split("eh ")[1]
                 connected = True
                 enter_session(name)
