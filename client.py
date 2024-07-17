@@ -43,17 +43,27 @@ def receive_content():
 
 # Enviar conteúdo
 def handle_input_content():
+    connected = False
     while True:
         data = input("")
-        if 'bye' in data: 
-            data = f"O usuário {name} saiu da sessão às /END/"
-            send_content(data)
-            print("Você saiu da sessão. Até a próxima :)")
-            client.close()
-            break
+        if connected:
+            if 'bye' in data: 
+                data = f"O usuário {name} saiu da sessão às /END/"
+                send_content(data)
+                print("Você saiu da sessão. Até a próxima :)")
+                client.close()
+                break
+            
+            else:
+                data = f"/START/{name}: {data}/END/"
+                send_content(data)
         else:
-            data = f"/START/{name}: {data}/END/"
-            send_content(data)
+            if 'hi, meu nome eh ' in data:
+                name = data.split("eh ")[1]
+                connected = True
+                enter_session(name)
+            else:
+                print("Você não está conectado em nenhuma sessão.")
 
 def send_content(content):
     try:
@@ -70,8 +80,7 @@ def enter_session(name):
 
 def main():
     global name
-    name = input("Insira o seu nome: ")
-    enter_session(name)
+    name = ''
 
     thread_receive = threading.Thread(target=receive_content)
     thread_receive.start()
