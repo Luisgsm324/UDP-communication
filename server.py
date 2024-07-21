@@ -20,7 +20,11 @@ def receive_content():
     try:
         output, clientadress = server.recvfrom(buffer_size)
         # await_ack(server.recvfrom)
-        content = output.decode()    
+        content = output.decode()
+        
+        condition = receiver_checksum_function(content)
+        print(condition, 'Server')
+        
 
         ip, port = clientadress[0], clientadress[1]
         

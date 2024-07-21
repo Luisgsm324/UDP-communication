@@ -1,4 +1,5 @@
 import math
+import hashlib
 
 def send_for_clients(type_user, clients, adress, sendto, data):
     if type_user == "server":
@@ -10,12 +11,14 @@ def send_for_clients(type_user, clients, adress, sendto, data):
 
 def checksum_sender_calculator(content, block_length):
     # Processo de divisão em blocos do pacote
+    print(len(content))
     number_blocks = math.ceil(len(content)/block_length)
     start = 0
     end = block_length
     checksum_value = 0
     for _ in range(number_blocks): 
         checksum_segment = content[start:end]
+        print(checksum_segment)
         for byte_value in checksum_segment:
             checksum_value += byte_value
         start = end
@@ -23,6 +26,26 @@ def checksum_sender_calculator(content, block_length):
 
     return bin(checksum_value)
 
+def return_checksum_value(content):
+    checksum_value = hashlib.md5(content).hexdigest()
+    return checksum_value
+
+def receiver_checksum_function(content):
+    print(content)
+    print("-----")
+    content, checksum_value_receive = content.split("/END/")[0] + '/END/', content.split("/END/")[1]
+    print(content)
+    checksum_value_checked = return_checksum_value(content.encode())
+
+    if checksum_value_checked == checksum_value_receive:
+        return True
+    
+    return False
+
+def sender_checksum_function(content):
+    checksum_value = return_checksum_value(content)
+    new_content = content + checksum_value.encode()
+    return new_content
 
 def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
     if type_user == "client":
@@ -33,12 +56,13 @@ def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
         while True:
             # Monta pacote
             data = file1.read(500)
-            checksum = checksum_sender_calculator(data, 16)
-            print(len(data), checksum)
-            #print(len(data))
+            
             if not data: break
             # Envia
-            send_for_clients(type_user, clients, adress, sendto, data)
+            
+            new_content = sender_checksum_function(data)
+
+            send_for_clients(type_user, clients, adress, sendto, new_content)
             
             # Await_acl
             
@@ -47,7 +71,7 @@ def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
             # data = f"/ACK-{sequence}/ {data}"
             
             
-    
+    # /START/luis: olaaa/END/
 
     
             
