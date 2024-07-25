@@ -21,7 +21,8 @@ def receive_content():
         output, clientadress = server.recvfrom(buffer_size)
         # await_ack(server.recvfrom)
         content = output.decode()
-        content = checksum_receiver_checker(content)
+        content, seq_num = checksum_receiver_checker(content)
+        # nesse caso deve verificar a integridade do pacote e obter o número de sequência
         
         #condition = receiver_checksum_function(content)
         #print(condition, 'Server')
@@ -49,6 +50,12 @@ def receive_content():
             # await_call()
             print()
             os.remove("receive.txt")
+
+        # tentativa de efetividade do ping pong
+        # aqui ele envia um ACK com o número de sequência de volta para o cliente
+        # ou deveria fazer isso
+        ack_message = f"/ACK-{seq_num}/"
+        server.sendto(ack_message.encode(), clientadress)    
         
     except Exception as e:
         print(f"Error: {e}")

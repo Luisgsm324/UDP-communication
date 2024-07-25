@@ -20,23 +20,30 @@ def receive_content():
         while True:
             output, serveradress = client.recvfrom(BUFFER_SIZE)
             content = output.decode()
-            content = checksum_receiver_checker(content)
 
-            if "/END/" not in content:
-                with open("message.txt", mode="a", encoding='utf-8') as file_append_1:
-                    file_append_1.write(content)
+             # agora verifica se o pacote é um ACK
+            if content.startswith("/ACK-"):
+                ack_received = int(content.split("/ACK-")[1].split("/")[0])
+                print(f"ACK recebido: {ack_received}")
+                # lógica inseguramente realizada para parar o timer e confirmar o recebimento do ACK
+
             else:
-                with open("message.txt", mode="a", encoding='utf-8') as file_append_2:
-                    file_append_2.write(content)
-                    
-                with open("message.txt", mode="rb") as file_read_1:
-                    data = file_read_1.read().decode()
-                    data = data.replace("/END/", "")
-                    
-                    if "/START/" in data:
-                        print(content)
-                    else:
-                        print(data) 
+                content = checksum_receiver_checker(content)
+
+                if "/END/" not in content:
+                    with open("message.txt", mode="a", encoding='utf-8') as file_append_1:
+                        file_append_1.write(content)
+
+                else:
+                    with open("message.txt", mode="a", encoding='utf-8') as file_append_2:
+                        file_append_2.write(content)
+                    with open("message.txt", mode="rb") as file_read_1:
+                        data = file_read_1.read().decode()
+                        data = data.replace("/END/", "")
+                        if "/START/" in data:
+                            print(content)
+                        else:
+                            print(data) 
                         
                 os.remove("message.txt")
     except:

@@ -53,10 +53,14 @@ def checksum_receiver_checker(data):
 
     if ref == checksum_result[2:]:
         print("Bateu, amigão!")
+        # agora obtém também o número de sequência
+        seq_num = int(data.split("/START-")[1].split("/")[0])
+
     else:
         print("não bateu")
+        seq_num = -1
     
-    return content.decode()
+    return content.decode(), seq_num
 
 def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
     if type_user == "client":
