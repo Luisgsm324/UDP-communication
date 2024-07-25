@@ -1,5 +1,4 @@
 import math
-import hashlib
 
 def send_for_clients(type_user, clients, adress, sendto, data):
     if type_user == "server":
@@ -54,27 +53,10 @@ def checksum_receiver_checker(data):
 
     if ref == checksum_result[2:]:
         print("Bateu, amigão!")
-
-def return_checksum_value(content):
-    checksum_value = hashlib.md5(content).hexdigest()
-    return checksum_value
-
-def receiver_checksum_function(content):
-    print(content)
-    print("-----")
-    content, checksum_value_receive = content.split("/END/")[0] + '/END/', content.split("/END/")[1]
-    print(content)
-    checksum_value_checked = return_checksum_value(content.encode())
-
-    if checksum_value_checked == checksum_value_receive:
-        return True
+    else:
+        print("não bateu")
     
-    return False
-
-def sender_checksum_function(content):
-    checksum_value = return_checksum_value(content)
-    new_content = content + checksum_value.encode()
-    return new_content
+    return content.decode()
 
 def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
     if type_user == "client":

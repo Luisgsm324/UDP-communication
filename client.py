@@ -20,8 +20,7 @@ def receive_content():
         while True:
             output, serveradress = client.recvfrom(BUFFER_SIZE)
             content = output.decode()
-            condition = receiver_checksum_function(content)
-            print(condition, 'Client')
+            content = checksum_receiver_checker(content)
 
             if "/END/" not in content:
                 with open("message.txt", mode="a", encoding='utf-8') as file_append_1:
