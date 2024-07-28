@@ -1,14 +1,9 @@
 import math
 import hashlib
 
-def send_for_clients(type_user, clients, adress, sendto, data):
-    if type_user == "server":
-        for client in clients:
-            if adress != client:
-                sendto(data, client)
-    else:
-        sendto(data, adress)
 
+
+# verificar se há função mais otimizada para isso
 # verificar se há função mais otimizada para isso
 def one_complement(value):
     result = ''
@@ -54,32 +49,25 @@ def checksum_receiver_checker(data):
 
     if ref == checksum_result[2:]:
         print("Bateu, amigão!")
-
-def return_checksum_value(content):
-    checksum_value = hashlib.md5(content).hexdigest()
-    return checksum_value
-
-def receiver_checksum_function(content):
-    print(content)
-    print("-----")
-    content, checksum_value_receive = content.split("/END/")[0] + '/END/', content.split("/END/")[1]
-    print(content)
-    checksum_value_checked = return_checksum_value(content.encode())
-
-    if checksum_value_checked == checksum_value_receive:
-        return True
+    else:
+        print("não bateu")
     
-    return False
+    return content.decode()
 
-def sender_checksum_function(content):
-    checksum_value = return_checksum_value(content)
-    new_content = content + checksum_value.encode()
-    return new_content
+def send_for_clients(type_user, clients, address, sendto, old_data, sequences):
+    if type_user == "server":
+        for client in clients:
+            if address != client:
+                data = f"{old_data.decode()}/PKT-{sequences[client[1]]}/"
+                print(f"ENVIOU PKT-{sequences[client[1]]}/", client[1], )
+                
+                sendto(data.encode(), client)
+    else:
+        print(f"ENVIOU PKT-{sequences[address[1]]}/", address[1], )
+        sendto(old_data, address)
 
-def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
-    if type_user == "client":
-        with open(filetxt, mode="w", encoding='utf-8') as file4:
-            file4.write(content)
+def send_packages(sendto, type_user, filetxt, address, clients, sequences):
+    packages = []
             
     with open(filetxt, mode="rb") as file1:
         while True:
@@ -89,17 +77,19 @@ def send_packages(content, sendto, type_user, filetxt, adress, clients = []):
             if not data: break
             # Envia
             
+            
+            
             formated_content = checksum_calculator(data, 16)
+            packages.append(formated_content)
             #new_content = sender_checksum_function(data)
 
-            send_for_clients(type_user, clients, adress, sendto, formated_content)
+            send_for_clients(type_user, clients, address, sendto, formated_content, sequences)
             
             # Await_acl
             
             
-            
+    return packages
             # data = f"/ACK-{sequence}/ {data}"
-            
             
     # /START/luis: olaaa/END/
 

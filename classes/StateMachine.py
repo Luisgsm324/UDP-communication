@@ -1,34 +1,34 @@
 import time
 from socket import *
+from packages_functions import send_packages, send_for_clients
 
 
+sequences = {}
 
-class StateMachine:
-    def __init__(self):
-        self.sequence = 0
-        self.state = f"Await call {self.sequence}"
+class TransmiterStateMachine:
+    def __init__(self, socket: socket, buffer_size, user_type, file_text):
+        self.socket = socket
+        self.buffer_size = buffer_size
         
-        self.state_timer = "Stopped"
+        
         self.packages = []
-
-    def run_timer(self):
-        current_time_timer = 0
-        limit_time_timer = 2
-
+        self.user_type = user_type
+        self.file_text = file_text
+    
+    def await_call(self, address, clients = []):
+        self.address = address
+        self.clients = clients
         
-        while current_time_timer <= limit_time_timer:
-            time.sleep(1)
-            current_time_timer += 1
+        if address[1] not in list(sequences.keys()):
+            sequences[address[1]] = 0     
         
-        if current_time_timer == 11: self.state_timer = "Boom"
-        else: self.state_timer = "Stopped"
-
-
-    def await_call(self, content, sendto, type_user, filetxt, adress, clients = []):
-        send_packages(content, sendto, type_user, filetxt, adress, clients = [])
-        self.state = f"Await ACK {self.sequence}"
-        self.run_timer()
-        self.await_ack(self,)
+        if self.user_type == "client":
+            with open(self.file_text, mode="a", encoding="utf-8") as file:
+                file.write(f"/PKT-{sequences[address[1]]}/")
+            
+        self.packages = send_packages(self.socket.sendto, self.user_type, self.file_text, address, clients, sequences)
+        # print(f"ENVIOU PKT-{sequences[address[1]] if address[1] in sequences else 0}", address[1])
+        # self.run_timer()
 
         # recebeu ordem ed enviar
             # montar pacote
@@ -36,19 +36,36 @@ class StateMachine:
             # começar timer 
             # mudar estado para esperar ack
 
+    # def resend_packages(self):
+    #     for package in self.packages:
+    #         if self.user_type == "server":
+    #             send_for_clients(self.user_type, self.clients, self.address, self.socket.sendto, package)
+    #         else:
+    #             self.socket.sendto(package, self.address)
         
-    def await_ack(self, server: socket, buffer_size):
-        output, clientadress = server.recvfrom(buffer_size)
-        content = output.decode() 
+    def await_ack(self, content, port, nak=False):
+        received_sequence = int(content.split("/ACK-")[1][0])
+        
+        current_sequence = sequences[port]
 
-        if content.startswith("/ACK-"): ack_received = int(content[5])
-        else: self.await_call()
+        # Testar isso aq
+        print(f"CHEGOU ACK-{received_sequence}", port , content, sequences)
+        
+        if received_sequence != current_sequence or nak:
+            # esperar um timer estourar
+            print("Esta corrompido ou é um ack diferente")
+            for package in self.packages:
+                self.socket.sendto(package, self.address)
+            pass
+        
+        else:
+            sequences[port] = 0 if current_sequence == 1 else 1
+        
+        
 
-
-        if ack_received != self.sequence: pass
-
-        if 
-        # Se recebeu, mas está corrompido e é um ack diferente do sequence
+            # Parar o timer
+            
+        # Se recebeu, mas está corrompido ou é um ack diferente do sequence
             # espera o timer estorar
         
         # Se o timer estourar
@@ -59,7 +76,41 @@ class StateMachine:
             # para o timer
             # muda o estado para esperar chamda
             # muda sequenec para 1
+            
+class ReceiverStateMachine:
+    def __init__(self, socket: socket, buffer_size, user_type, file_text):
+        self.socket = socket
+        self.buffer_size = buffer_size
         
-
-
-
+        self.packages = []
+        self.user_type = user_type
+        self.file_text = file_text
+    
+    
+    def await_call(self, content, address, clients=[]):
+        port = address[1]
+        if port not in list(sequences.keys()):
+            sequences[port] = 0  
+            
+        self.address = address
+        self.clients = clients
+        
+        # nao corrompido e 
+        received_sequence = int(content.split("/PKT-")[1][0])
+        print(f"CHEGOU PKT-{received_sequence}/ ", port, content)
+        current_sequence = sequences[port]
+        
+        data = f"/ACK-{received_sequence}/".encode()
+        
+        self.socket.sendto(data, address)
+        
+        if received_sequence == current_sequence:
+            print(f"ENVIOU ACK-{received_sequence}", port, content)
+            sequences[port] = 0 if current_sequence == 1 else 1
+            return True
+        else:
+            print("ERROU EM")
+        return False
+    
+        
+        

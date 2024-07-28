@@ -1,6 +1,7 @@
 from socket import *
 from datetime import datetime
 from packages_functions import *
+from classes.StateMachine import *
 import os
 
 # Socket do client
@@ -16,42 +17,53 @@ clients = []
 
 print(f"Servidor iniciado com sucesso às {datetime.now()}")
 
+transmiter_state_machine = TransmiterStateMachine(server, buffer_size, "server", "receive.txt")
+receiver_state_machine = ReceiverStateMachine(server, buffer_size, "server", "receive.txt")
+
 def receive_content():
-    try:
-        output, clientadress = server.recvfrom(buffer_size)
+    # try:
+        output, clientaddress = server.recvfrom(buffer_size)
         # await_ack(server.recvfrom)
         content = output.decode()
-        checksum_receiver_checker(content)
+        # print(content)
+        ip, port = clientaddress[0], clientaddress[1]
         
-        #condition = receiver_checksum_function(content)
-        #print(condition, 'Server')
+        # Caso seja um ack
+        if "/ACK-" in content or "/NAK-" in content: transmiter_state_machine.await_ack(content, port)
+        elif "/PKT-" in content:
+            if receiver_state_machine.await_call(content, clientaddress, clients):
+            # Caso seja um pkt
+                # checksum_receiver_checker(content)
+                
+                #condition = receiver_checksum_function(content)
+                #print(condition, 'Server')
+                
+                if "saiu da sessão" in content:
+                    clients.remove(clientaddress)
+                    
+                elif "entrou" in content:
+                    clients.append(clientaddress)
+                else:
+                    content = content.replace("/START/", f"{ip}:{port}/~") 
+                
+                with open("receive.txt", mode="a", encoding='utf-8') as filea:
+                    print(content)
+                    content = content.replace("/START/", f"{ip}:{port}/~")
+                    content = content.replace("/END/", f" {datetime.now()} /END/")
+                    content = content.replace("/PKT-0/", "")
+                    content = content.replace("/PKT-1/", "")
+                    
+                    filea.write(content)
+                
+                if "/END/" in content:
+                    transmiter_state_machine.await_call(clientaddress, clients)
+                    print()
+                    os.remove("receive.txt")
+            else:
+                print("SEI NAOOO, APAGAR DEPOIS ISSOOOOOOOOOOOOOOOOOOOOOOOOOO")
         
-
-        ip, port = clientadress[0], clientadress[1]
-        
-        if "saiu da sessão" in content:
-            clients.remove(clientadress)
-            
-        elif "entrou" in content:
-            clients.append(clientadress)
-        else:
-            content = content.replace("/START/", f"{ip}:{port}/~") 
-        
-        with open("receive.txt", mode="a", encoding='utf-8') as filea:
-            print(content, end="")
-            content = content.replace("/START/", f"{ip}:{port}/~")
-            content = content.replace("/END/", f" {datetime.now()} /END/")
-            
-            filea.write(content)
-        
-        if "/END/" in content:
-            send_packages("", server.sendto, "server", "receive.txt", clientadress, clients)
-            # await_call()
-            print()
-            os.remove("receive.txt")
-        
-    except Exception as e:
-        print(f"Error: {e}")
+    # except Exception as e:
+    #     print(f"Error: {e}")
 
 while True:
     receive_content()
