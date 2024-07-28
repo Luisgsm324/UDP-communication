@@ -26,6 +26,7 @@ def write_txt(content, mode="w"):
     with open(f"message-{port}.txt", mode=mode, encoding='utf-8') as file:
         file.write(content)
 
+
 def receive_content():
     # try:
         while True:
@@ -61,6 +62,7 @@ def receive_content():
 def handle_input_content():
     connected = False
     while True:
+        time.sleep(transmiter_state_machine.time_limit*3)
         data = input("")
         if connected:
             if 'bye' in data: 

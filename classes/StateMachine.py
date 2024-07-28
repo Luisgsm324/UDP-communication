@@ -1,4 +1,5 @@
-import time
+import time, timeit
+import threading
 from socket import *
 from packages_functions import send_packages, send_for_clients
 
@@ -14,19 +15,47 @@ class TransmiterStateMachine:
         self.packages = []
         self.user_type = user_type
         self.file_text = file_text
+        self.time_limit = 0.01 # 10 ms em segundos 
+        self.timer_exploded = False # Tempo do timer explodiu
+        self.ack_received = False # Recebeu o ACK
     
+    def timer_receive_ack(self):
+        repeat_times = 10
+        print(self.time_limit)
+        for _ in range(repeat_times):
+            time.sleep(self.time_limit/repeat_times)
+            if self.ack_received:
+                print("não explodiu")
+                self.timer_exploded = False
+                break
+        if not self.ack_received:
+            print("explodiu")
+            self.timer_exploded = True
+
     def await_call(self, address, clients = []):
-        self.address = address
-        self.clients = clients
-        
-        if address[1] not in list(sequences.keys()):
-            sequences[address[1]] = 0     
-        
-        if self.user_type == "client":
-            with open(self.file_text, mode="a", encoding="utf-8") as file:
-                file.write(f"/PKT-{sequences[address[1]]}/")
+        for _ in range(3):
+            self.address = address
+            self.clients = clients
             
-        self.packages = send_packages(self.socket.sendto, self.user_type, self.file_text, address, clients, sequences)
+            if address[1] not in list(sequences.keys()):
+                sequences[address[1]] = 0     
+            
+            if self.user_type == "client":
+                with open(self.file_text, mode="a", encoding="utf-8") as file:
+                    file.write(f"/PKT-{sequences[address[1]]}/")
+
+            self.packages = send_packages(self.socket.sendto, self.user_type, self.file_text, address, clients, sequences)
+            self.ack_received = False
+            self.timer_exploded = False
+            
+            timer_ack_function = threading.Thread(target=self.timer_receive_ack)
+            timer_ack_function = timer_ack_function.start()
+            #time.sleep(self.time_limit) 
+            if not self.timer_exploded:
+                break
+        # Iniciar timer
+        
+
         # print(f"ENVIOU PKT-{sequences[address[1]] if address[1] in sequences else 0}", address[1])
         # self.run_timer()
 
@@ -47,7 +76,8 @@ class TransmiterStateMachine:
         received_sequence = int(content.split("/ACK-")[1][0])
         
         current_sequence = sequences[port]
-
+        
+        self.ack_received = True
         # Testar isso aq
         print(f"CHEGOU ACK-{received_sequence}", port , content, sequences)
         
@@ -59,9 +89,7 @@ class TransmiterStateMachine:
             pass
         
         else:
-            sequences[port] = 0 if current_sequence == 1 else 1
-        
-        
+            sequences[port] = 0 if current_sequence == 1 else 1 
 
             # Parar o timer
             
