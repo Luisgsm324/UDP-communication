@@ -30,12 +30,17 @@ def receive_content():
         
         # Caso seja um ack
         if "/ACK-" in content or "/NAK-" in content: 
-            checksum_receiver_checker(content, isack=True)
+            if checksum_receiver_checker(content, isack=True): print("ack não corrompido no server") 
+            else: print("corrompido")
             transmiter_state_machine.await_ack(content, port)
         elif "/PKT-" in content:
             if receiver_state_machine.await_call(content, clientaddress, clients):
                 #print("conteúdo do servidor: ", content)
-                checksum_receiver_checker(content, isack=False)
+                print("conteudo antes de checar checksum: ", content)
+                if checksum_receiver_checker(content, isack=False):
+                    print("pkt não corrompido no server")
+                else:
+                    print("corrompido")
                 # Caso seja um pkt
                 
                 if "saiu da sessão" in content:
@@ -52,7 +57,9 @@ def receive_content():
                     content = content.replace("/END/", f" {datetime.now()} /END/")
                     content = content.replace("/PKT-0/", "")
                     content = content.replace("/PKT-1/", "")
-                    
+
+                    # Conteúdo sem checksum
+                    content = content.split('/END/')[0] + '/END/'
                     filea.write(content)
                 
                 if "/END/" in content:

@@ -44,3 +44,7 @@ def minha_funcao():
 tempo_execucao = timeit.timeit(minha_funcao, globals=globals(), number=1)
 
 print(f"Tempo de execução: {tempo_execucao:.4f} segundos")
+
+
+a =  'teste'
+print(a[0:-1])
