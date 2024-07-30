@@ -19,7 +19,7 @@ client.bind(("127.0.0.1", port))
 # Receber conteúdo
 # Precisa rodar o tempo todo (pode receber mensagem a qualquer momento)
 
-transmiter_state_machine = TransmiterStateMachine(client, "client", f"chat/message-{port}.txt")
+transmiter_state_machine = TransmiterStateMachine(client, "client")
 receiver_state_machine = ReceiverStateMachine(client)
 
 def write_txt(content, mode="w"):
@@ -37,6 +37,7 @@ def receive_content():
                     print("true checksum deu certo aoba")
                 if receiver_state_machine.await_call(content, serveraddress) and checksum_receiver_checker(content, isack=False):
                     #print("content receive client: ", content)
+                    content = content.split('/CRC-')[0]
                     write_txt(content, "a")
                 
                     if "/END/" in content:
@@ -45,6 +46,9 @@ def receive_content():
                             data = data.replace("/END/", "")
                             data = data.replace("/PKT-1/", "")
                             data = data.replace("/PKT-0/", "")
+
+                            
+                            #data = data.split('/CRC-')[0]  
 
                             if "/START/" in data:
                                 print(content)
@@ -90,7 +94,7 @@ def handle_input_content():
 def send_content(content):
     # try:
         write_txt(content, "w")
-        transmiter_state_machine.await_call((SERVERNAME, SERVERPORT), [(SERVERNAME, SERVERPORT)])
+        transmiter_state_machine.await_call((SERVERNAME, SERVERPORT), f"chat/message-{port}.txt" ,[(SERVERNAME, SERVERPORT)])
         write_txt("", "w")
 
     # except: 

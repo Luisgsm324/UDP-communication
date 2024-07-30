@@ -8,18 +8,17 @@ timers = {}
 indexes = {}
 
 class TransmiterStateMachine:
-    def __init__(self, socket: socket, user_type, file_text):
+    def __init__(self, socket: socket, user_type):
         self.socket = socket
         
         self.packages = []
         self.user_type = user_type
-        self.file_text = file_text
         
-        self.time_limit = 0.01
+        self.time_limit = 0.03
 
-    def make_packages(self ):     
+    def make_packages(self, file_text ):     
         self.packages = []          
-        with open(self.file_text, mode="rb") as file1:
+        with open(file_text, mode="rb") as file1:
             while True:
                 data = file1.read(500)
                 
@@ -52,6 +51,7 @@ class TransmiterStateMachine:
                     break
                 
             if not timers[address]["ack"]:
+                print("ai papai, macetei")
                 timers[address]["exploded"] = True
             else:
                 break
@@ -64,11 +64,11 @@ class TransmiterStateMachine:
         
         self.socket.sendto(package, address)
     
-    def await_call(self, address, clients = []):
+    def await_call(self, address, file_text, clients = []):
         if address[1] not in list(sequences.keys()):
             sequences[address[1]] = 0
             
-        self.make_packages()
+        self.make_packages(file_text)
         
         for client in clients:
             indexes[client[1]] = 0
@@ -83,7 +83,7 @@ class TransmiterStateMachine:
         
         print(f"[PRINT-DEBBUGGER] CHEGOU ACK-{received_sequence}", port)
         
-        if received_sequence != current_sequence and checksum_receiver_checker(content, isack=True):
+        if received_sequence != current_sequence or not checksum_receiver_checker(content, isack=True):
             print("[PRINT-DEBBUGGER] Está corrompido ou é um ACK diferente")
             pass
         elif timers[address]["exploded"]:

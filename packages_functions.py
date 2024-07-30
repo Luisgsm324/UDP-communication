@@ -39,6 +39,7 @@ def checksum_calculator(content, block_length, type_user='client'):
         
 
 def checksum_receiver_checker(data, isack=True):
+    print(data, 'content antes da modificação aoba')
     if isack:
         content, checksum_content = data.split("/CRC-")[0], data.split("/CRC-")[1][0:-1]
     else:
@@ -46,12 +47,16 @@ def checksum_receiver_checker(data, isack=True):
     print("checksum: ", checksum_content)
     #print(checksum_content, content)
     content = content.encode()
+    print(content, '<- content aqui')
     checksum_value = checksum_calculator(content, 16, type_user='server')
 
     checksum_result = bin(int(checksum_value, 2) + int(checksum_content, 2))
 
+    print("checksum que chegou: ", checksum_content, len(checksum_content))
+    print("checksum conferido: ", checksum_value, len(checksum_value))
     # validar certas referências
     ref = ''
     for _ in range(len(checksum_result) - 2): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
-   
+    
+    print(ref == checksum_result[2:], "<- condicao ")
     return ref == checksum_result[2:]

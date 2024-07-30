@@ -17,7 +17,7 @@ clients = []
 
 print(f"Servidor iniciado com sucesso às {datetime.now()}")
 
-transmiter_state_machine = TransmiterStateMachine(server, "server", "receive.txt")
+transmiter_state_machine = TransmiterStateMachine(server, "server")
 receiver_state_machine = ReceiverStateMachine(server)
 
 def receive_content():
@@ -38,7 +38,7 @@ def receive_content():
                 else:
                     content = content.replace("/START/", f"{ip}:{port}/~") 
             
-                with open("receive.txt", mode="a", encoding='utf-8') as filea:
+                with open(f"chat/receive-{port}.txt", mode="a", encoding='utf-8') as filea:
                     print(content)
                     content = content.replace("/START/", f"{ip}:{port}/~")
                     content = content.replace("/END/", f" {datetime.now()} /END/")
@@ -46,14 +46,14 @@ def receive_content():
                     content = content.replace("/PKT-1/", "")
 
                     # Conteúdo sem checksum (em tese)
-                    content = content.split('/END/')[0] + '/END/'
+                    content = content.split('/CRC-')[0]
                     
                     filea.write(content)
                 
                 if "/END/" in content:
-                    transmiter_state_machine.await_call(clientaddress, clients)
+                    transmiter_state_machine.await_call(clientaddress, f"chat/receive-{port}.txt", clients)
                     print()
-                    os.remove("receive.txt")
+                    os.remove(f"chat/receive-{port}.txt")
             else:
                 print("[PRINT-DEBBUGGER] Pacote corrompido")
         
