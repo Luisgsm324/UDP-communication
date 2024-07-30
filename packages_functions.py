@@ -31,7 +31,8 @@ def checksum_calculator(content, block_length, type_user='client'):
     binary_value = bin(checksum_value)[2:] # Os dois primeiros números servem para falar que o número é binário (o 0b)
     if type_user == 'client':
         checksum_value = one_complement(binary_value)
-        formated_content = content + checksum_value.encode()
+        formated_content = content + f'/CRC-{checksum_value}/'.encode()
+        print(formated_content)
         return formated_content
     
     return binary_value
@@ -39,66 +40,18 @@ def checksum_calculator(content, block_length, type_user='client'):
 
 def checksum_receiver_checker(data, isack=True):
     if isack:
-        content, checksum_content = data[0:7], data[7:]
-        #print(checksum_content, content)
-        content = content.encode()
-        checksum_value = checksum_calculator(content, 16, type_user='server')
-
-        checksum_result = bin(int(checksum_value, 2) + int(checksum_content, 2))
-
-        # validar certas referências
-        ref = ''
-        for _ in range(len(checksum_content)): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
-
-        if ref == checksum_result[2:]:
-            print("Bateu, amigão!")
-        else:
-            print("não bateu")
-
-        return content.decode()
+        content, checksum_content = data.split("/CRC-")[0], data.split("/CRC-")[1][0:-1]
     else:
-        print("conteudo e checksum a seguir: ", data)
-        #content = data.split("/PKT-")[0] + '/PKT-' + data.split("/PKT-")[1][0:2]
-        #checksum_content = data.split("//PKT-")[1][2:]
-        
-    
+        content, checksum_content = data.split("/CRC-")[0], data.split("/CRC-")[1].split('/')[0]
+    print("checksum: ", checksum_content)
+    #print(checksum_content, content)
+    content = content.encode()
+    checksum_value = checksum_calculator(content, 16, type_user='server')
 
-def send_for_clients(type_user, clients, address, sendto, old_data, sequences):
-    if type_user == "server":
-        for client in clients:
-            if address != client:
-                data = f"{old_data.decode()}/PKT-{sequences[client[1]]}/"
-                print(f"ENVIOU PKT-{sequences[client[1]]}/", client[1], )
-                
-                sendto(data.encode(), client)
-    else:
-        print(f"ENVIOU PKT-{sequences[address[1]]}/", address[1], )
-        sendto(old_data, address)
+    checksum_result = bin(int(checksum_value, 2) + int(checksum_content, 2))
 
-def send_packages(sendto, type_user, filetxt, address, clients, sequences):
-    packages = []
-            
-    with open(filetxt, mode="rb") as file1:
-        while True:
-            # Monta pacote
-            data = file1.read(500)
-            
-            if not data: break
-            # Envia
-  
-            formated_content = checksum_calculator(data, 16)
-            packages.append(formated_content)
+    # validar certas referências
+    ref = ''
+    for _ in range(len(checksum_content)): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
 
-            send_for_clients(type_user, clients, address, sendto, formated_content, sequences)
-            
-            # Await_acl
-            
-            
-    return packages
-            # data = f"/ACK-{sequence}/ {data}"
-            
-    # /START/luis: olaaa/END/
-
-#100011110011101    
-
-#000110101101
+    return ref == checksum_result[2:]

@@ -10,34 +10,26 @@ import os
 serverport = 5000
 buffer_size = 1024
 server = socket(AF_INET, SOCK_DGRAM)
-server.bind(("localhost", serverport))
+server.bind(("127.0.0.1", serverport))
 
 # Armazenar quem está conectado na sessão (pensar um pouco melhor sobre o primeiro dict e essa lista)
 clients = []
 
 print(f"Servidor iniciado com sucesso às {datetime.now()}")
 
-transmiter_state_machine = TransmiterStateMachine(server, buffer_size, "server", "receive.txt")
-receiver_state_machine = ReceiverStateMachine(server, buffer_size, "server", "receive.txt")
+transmiter_state_machine = TransmiterStateMachine(server, "server", "receive.txt")
+receiver_state_machine = ReceiverStateMachine(server)
 
 def receive_content():
     # try:
         output, clientaddress = server.recvfrom(buffer_size)
-        # await_ack(server.recvfrom)
         content = output.decode()
-        # print(content)
         ip, port = clientaddress[0], clientaddress[1]
         
-        # Caso seja um ack
-        if "/ACK-" in content or "/NAK-" in content: 
-            checksum_receiver_checker(content, isack=True)
-            transmiter_state_machine.await_ack(content, port)
+        if "/ACK-" in content: 
+            transmiter_state_machine.await_ack(content, clientaddress)
         elif "/PKT-" in content:
-            if receiver_state_machine.await_call(content, clientaddress, clients):
-                #print("conteúdo do servidor: ", content)
-                checksum_receiver_checker(content, isack=False)
-                # Caso seja um pkt
-                
+            if receiver_state_machine.await_call(content, clientaddress) and not checksum_receiver_checker(content, isack=False):            
                 if "saiu da sessão" in content:
                     clients.remove(clientaddress)
                     
@@ -45,9 +37,9 @@ def receive_content():
                     clients.append(clientaddress)
                 else:
                     content = content.replace("/START/", f"{ip}:{port}/~") 
-                
+            
                 with open("receive.txt", mode="a", encoding='utf-8') as filea:
-                    #print(content)
+                    print(content)
                     content = content.replace("/START/", f"{ip}:{port}/~")
                     content = content.replace("/END/", f" {datetime.now()} /END/")
                     content = content.replace("/PKT-0/", "")
@@ -60,7 +52,7 @@ def receive_content():
                     print()
                     os.remove("receive.txt")
             else:
-                print("SEI NAOOO, APAGAR DEPOIS ISSOOOOOOOOOOOOOOOOOOOOOOOOOO")
+                print("[PRINT-DEBBUGGER] Pacote corrompido")
         
     # except Exception as e:
     #     print(f"Error: {e}")
