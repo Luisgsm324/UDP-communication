@@ -83,7 +83,7 @@ class TransmiterStateMachine:
         
         print(f"[PRINT-DEBBUGGER] CHEGOU ACK-{received_sequence}", port)
         
-        if  received_sequence != current_sequence and not checksum_receiver_checker(content, isack=True):
+        if received_sequence != current_sequence and checksum_receiver_checker(content, isack=True):
             print("[PRINT-DEBBUGGER] Está corrompido ou é um ACK diferente")
             pass
         elif timers[address]["exploded"]:

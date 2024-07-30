@@ -29,7 +29,7 @@ def receive_content():
         if "/ACK-" in content: 
             transmiter_state_machine.await_ack(content, clientaddress)
         elif "/PKT-" in content:
-            if receiver_state_machine.await_call(content, clientaddress) and not checksum_receiver_checker(content, isack=False):            
+            if receiver_state_machine.await_call(content, clientaddress) and checksum_receiver_checker(content, isack=False):            
                 if "saiu da sessão" in content:
                     clients.remove(clientaddress)
                     
@@ -44,6 +44,9 @@ def receive_content():
                     content = content.replace("/END/", f" {datetime.now()} /END/")
                     content = content.replace("/PKT-0/", "")
                     content = content.replace("/PKT-1/", "")
+
+                    # Conteúdo sem checksum (em tese)
+                    content = content.split('/END/')[0] + '/END/'
                     
                     filea.write(content)
                 

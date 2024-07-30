@@ -32,8 +32,11 @@ def receive_content():
             output, serveraddress = client.recvfrom(BUFFER_SIZE)
             content = output.decode()
 
-            if "/PKT-" in content:    
-                if receiver_state_machine.await_call(content, serveraddress) and not checksum_receiver_checker(content, isack=False):
+            if "/PKT-" in content:  
+                if checksum_receiver_checker(content, isack=False):
+                    print("true checksum deu certo aoba")
+                if receiver_state_machine.await_call(content, serveraddress) and checksum_receiver_checker(content, isack=False):
+                    #print("content receive client: ", content)
                     write_txt(content, "a")
                 
                     if "/END/" in content:
@@ -42,7 +45,7 @@ def receive_content():
                             data = data.replace("/END/", "")
                             data = data.replace("/PKT-1/", "")
                             data = data.replace("/PKT-0/", "")
-                            
+
                             if "/START/" in data:
                                 print(content)
                             else:

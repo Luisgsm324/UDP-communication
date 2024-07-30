@@ -32,7 +32,7 @@ def checksum_calculator(content, block_length, type_user='client'):
     if type_user == 'client':
         checksum_value = one_complement(binary_value)
         formated_content = content + f'/CRC-{checksum_value}/'.encode()
-        print(formated_content)
+        #print(formated_content)
         return formated_content
     
     return binary_value
@@ -52,6 +52,6 @@ def checksum_receiver_checker(data, isack=True):
 
     # validar certas referências
     ref = ''
-    for _ in range(len(checksum_content)): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
-
+    for _ in range(len(checksum_result) - 2): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
+   
     return ref == checksum_result[2:]
