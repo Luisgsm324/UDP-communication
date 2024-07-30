@@ -1,7 +1,7 @@
 import time, timeit
 import threading
 from socket import *
-from packages_functions import send_packages, send_for_clients
+from packages_functions import send_packages, send_for_clients, checksum_calculator
 
 
 sequences = {}
@@ -21,7 +21,6 @@ class TransmiterStateMachine:
     
     def timer_receive_ack(self):
         repeat_times = 10
-        print(self.time_limit)
         for _ in range(repeat_times):
             time.sleep(self.time_limit/repeat_times)
             if self.ack_received:
@@ -73,13 +72,14 @@ class TransmiterStateMachine:
     #             self.socket.sendto(package, self.address)
         
     def await_ack(self, content, port, nak=False):
+        #print("content: ", content)
         received_sequence = int(content.split("/ACK-")[1][0])
         
         current_sequence = sequences[port]
         
         self.ack_received = True
         # Testar isso aq
-        print(f"CHEGOU ACK-{received_sequence}", port , content, sequences)
+        #print(f"CHEGOU ACK-{received_sequence}", port , content, sequences)
         
         if received_sequence != current_sequence or nak:
             # esperar um timer estourar
@@ -125,15 +125,20 @@ class ReceiverStateMachine:
         
         # nao corrompido e 
         received_sequence = int(content.split("/PKT-")[1][0])
-        print(f"CHEGOU PKT-{received_sequence}/ ", port, content)
+        #print(f"CHEGOU PKT-{received_sequence}/ ", port, content)
         current_sequence = sequences[port]
+        
         
         data = f"/ACK-{received_sequence}/".encode()
         
-        self.socket.sendto(data, address)
+        # Adicionando o checksum no ack
+        formated_content = checksum_calculator(data, 16)
+        print(formated_content)
+        
+        self.socket.sendto(formated_content, address)
         
         if received_sequence == current_sequence:
-            print(f"ENVIOU ACK-{received_sequence}", port, content)
+            #print(f"ENVIOU ACK-{received_sequence}", port, content)
             sequences[port] = 0 if current_sequence == 1 else 1
             return True
         else:

@@ -29,14 +29,14 @@ def receive_content():
         ip, port = clientaddress[0], clientaddress[1]
         
         # Caso seja um ack
-        if "/ACK-" in content or "/NAK-" in content: transmiter_state_machine.await_ack(content, port)
+        if "/ACK-" in content or "/NAK-" in content: 
+            checksum_receiver_checker(content, isack=True)
+            transmiter_state_machine.await_ack(content, port)
         elif "/PKT-" in content:
             if receiver_state_machine.await_call(content, clientaddress, clients):
-            # Caso seja um pkt
-                # checksum_receiver_checker(content)
-                
-                #condition = receiver_checksum_function(content)
-                #print(condition, 'Server')
+                #print("conteúdo do servidor: ", content)
+                checksum_receiver_checker(content, isack=False)
+                # Caso seja um pkt
                 
                 if "saiu da sessão" in content:
                     clients.remove(clientaddress)
@@ -47,7 +47,7 @@ def receive_content():
                     content = content.replace("/START/", f"{ip}:{port}/~") 
                 
                 with open("receive.txt", mode="a", encoding='utf-8') as filea:
-                    print(content)
+                    #print(content)
                     content = content.replace("/START/", f"{ip}:{port}/~")
                     content = content.replace("/END/", f" {datetime.now()} /END/")
                     content = content.replace("/PKT-0/", "")

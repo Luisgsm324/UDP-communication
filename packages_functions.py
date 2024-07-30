@@ -37,22 +37,31 @@ def checksum_calculator(content, block_length, type_user='client'):
     return binary_value
         
 
-def checksum_receiver_checker(data):
-    content, checksum_content = (data.split('/END/')[0] + '/END/').encode(), data.split('/END/')[1]
-    checksum_value = checksum_calculator(content, 16, type_user='server')
+def checksum_receiver_checker(data, isack=True):
+    if isack:
+        content, checksum_content = data[0:7], data[7:]
+        #print(checksum_content, content)
+        content = content.encode()
+        checksum_value = checksum_calculator(content, 16, type_user='server')
 
-    checksum_result = bin(int(checksum_value, 2) + int(checksum_content, 2))
-    
-    # validar certas referências
-    ref = ''
-    for _ in range(len(checksum_content)): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
+        checksum_result = bin(int(checksum_value, 2) + int(checksum_content, 2))
 
-    if ref == checksum_result[2:]:
-        print("Bateu, amigão!")
+        # validar certas referências
+        ref = ''
+        for _ in range(len(checksum_content)): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
+
+        if ref == checksum_result[2:]:
+            print("Bateu, amigão!")
+        else:
+            print("não bateu")
+
+        return content.decode()
     else:
-        print("não bateu")
+        print("conteudo e checksum a seguir: ", data)
+        #content = data.split("/PKT-")[0] + '/PKT-' + data.split("/PKT-")[1][0:2]
+        #checksum_content = data.split("//PKT-")[1][2:]
+        
     
-    return content.decode()
 
 def send_for_clients(type_user, clients, address, sendto, old_data, sequences):
     if type_user == "server":
@@ -76,12 +85,9 @@ def send_packages(sendto, type_user, filetxt, address, clients, sequences):
             
             if not data: break
             # Envia
-            
-            
-            
+  
             formated_content = checksum_calculator(data, 16)
             packages.append(formated_content)
-            #new_content = sender_checksum_function(data)
 
             send_for_clients(type_user, clients, address, sendto, formated_content, sequences)
             

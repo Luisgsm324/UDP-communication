@@ -36,6 +36,7 @@ def receive_content():
             # print(condition, 'Client')
 
             if "/PKT-" in content:
+                checksum_receiver_checker(content, isack=False)
                 if receiver_state_machine.await_call(content, serveraddress):
                     write_txt(content, "a")
                 
@@ -53,6 +54,7 @@ def receive_content():
                 else:
                     print("TA ERRADO AQUI Ó")
             elif "/ACK-" in content or "/NAK-" in content:
+                checksum_receiver_checker(content, isack=True)
                 transmiter_state_machine.await_ack(content, serveraddress[1], "/NAK-" in content)
             else:
                 print("EROUUUUUU")
