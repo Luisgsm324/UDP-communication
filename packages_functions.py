@@ -1,10 +1,6 @@
 import math
-import hashlib
 
-
-
-# verificar se há função mais otimizada para isso
-# verificar se há função mais otimizada para isso
+# Função para calcular o complemento de um
 def one_complement(value):
     result = ''
     for number in value:
@@ -13,6 +9,7 @@ def one_complement(value):
         else: result += '1'
     return result
 
+# Calcular o valor do checksum (serve como auxílio para o checksum)
 def checksum_calculator(content, block_length, type_user='client'):
     # Processo de divisão em blocos do pacote
     number_blocks = math.ceil(len(content)/block_length)
@@ -33,8 +30,8 @@ def checksum_calculator(content, block_length, type_user='client'):
         return formated_content
     
     return binary_value
-        
 
+# Função para verificar se o checksum está correto        
 def checksum_receiver_checker(data, isack=True):
     if isack:
         content, checksum_content = data.split("/CRC-")[0], data.split("/CRC-")[1][0:-1]
@@ -45,7 +42,6 @@ def checksum_receiver_checker(data, isack=True):
 
     checksum_result = bin(int(checksum_value, 2) + int(checksum_content, 2))
 
-    # validar certas referências
     ref = ''
     for _ in range(len(checksum_result) - 2): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
     
