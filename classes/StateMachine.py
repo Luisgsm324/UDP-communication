@@ -51,13 +51,12 @@ class TransmiterStateMachine:
                     break
                 
             if not timers[address]["ack"]:
-                print("ai papai, macetei")
                 timers[address]["exploded"] = True
             else:
                 break
     
     def send_package(self, address, index):
-        print(f"ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
+        print(f"[PRINT-DEBBUGER] ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
         package: bytes = self.packages[index]
         
         package = f"{package.decode()}/PKT-{sequences[address[1]]}/".encode()

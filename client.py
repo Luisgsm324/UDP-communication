@@ -27,16 +27,13 @@ def write_txt(content, mode="w"):
         file.write(content)
 
 def receive_content():
-    # try:
+    try:
         while True:
             output, serveraddress = client.recvfrom(BUFFER_SIZE)
             content = output.decode()
 
             if "/PKT-" in content:  
-                if checksum_receiver_checker(content, isack=False):
-                    print("true checksum deu certo aoba")
                 if receiver_state_machine.await_call(content, serveraddress) and checksum_receiver_checker(content, isack=False):
-                    #print("content receive client: ", content)
                     content = content.split('/CRC-')[0]
                     write_txt(content, "a")
                 
@@ -45,10 +42,7 @@ def receive_content():
                             data = file_read_1.read().decode()
                             data = data.replace("/END/", "")
                             data = data.replace("/PKT-1/", "")
-                            data = data.replace("/PKT-0/", "")
-
-                            
-                            #data = data.split('/CRC-')[0]  
+                            data = data.replace("/PKT-0/", "") 
 
                             if "/START/" in data:
                                 print(content)
@@ -56,14 +50,13 @@ def receive_content():
                                 print(data) 
                                 
                         os.remove(f"chat/message-{port}.txt")
-                else:
-                    print("TA ERRADO AQUI Ó")
+
             elif "/ACK-" in content:
                 transmiter_state_machine.await_ack(content, serveraddress,)
             else:
-                print("EROUUUUUU")
-    # except: 
-    #     print("ERRO AQUi")
+                print("[ERRO] - Algo de errado com o pacote")
+    except: 
+        pass
 
 # Enviar conteúdo
 def handle_input_content():
@@ -77,7 +70,7 @@ def handle_input_content():
                 send_content(data)
                 print("Você saiu da sessão. Até a próxima :)")
                 client.close()
-                os.remove(f"message-{port}.txt")
+                os.remove(f"chat/message-{port}.txt")
                 break
             
             else:
@@ -92,13 +85,12 @@ def handle_input_content():
                 print("Você não está conectado em nenhuma sessão.")
 
 def send_content(content):
-    # try:
+    try:
         write_txt(content, "w")
         transmiter_state_machine.await_call((SERVERNAME, SERVERPORT), f"chat/message-{port}.txt" ,[(SERVERNAME, SERVERPORT)])
         write_txt("", "w")
-
-    # except: 
-    #     print("Error")
+    except: 
+        print("Error")
         
 # Entrar na sessão
 def enter_session(name):
