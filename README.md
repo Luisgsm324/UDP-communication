@@ -67,3 +67,7 @@ O desenvolvimento do projeto foi organizado em divisão de tarefas, de forma ade
 ## Ferramentas, Bibliotecas e Frameworks utilizados: 
 
 Utilizamos diversas bibliotecas nativas do próprio Python para a construção do projeto. O "socket" foi a lib vital para o funcionamento adeqaudo do projeto, havendo o uso de bibliotecas auxiliares para algumas questões, como time/datetime (auxiliar o funcionamento do timer no RDT 3.0) e threading (para garantir um funcionamento adequado de recebimento e envio de mensagens por parte do cliente). 
+
+***
+
+Os README's de cada entrega em específico podem ser lidos na pasta "readme_entregas". Obrigado por ler até aqui!
