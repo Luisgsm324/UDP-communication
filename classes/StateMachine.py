@@ -36,7 +36,10 @@ class TransmiterStateMachine:
                 "ack": False,
                 "exploded": False
                 }
-
+            
+        timers[address]["ack"] = False
+        timers[address]["exploded"] = False
+            
         while not timers[address]["ack"]:
             timers[address]["ack"] = False
             timers[address]["exploded"] = False
@@ -53,7 +56,7 @@ class TransmiterStateMachine:
                 timers[address]["exploded"] = True
     
     def send_package(self, address, index):
-        print(f"[PRINT-DEBBUGER] ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
+        # print(f"[PRINT-DEBBUGER] ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
         package: bytes = self.packages[index]
         
         package = f"{package.decode()}/PKT-{sequences[address[1]]}/".encode()
@@ -63,7 +66,7 @@ class TransmiterStateMachine:
     def await_call(self, address, file_text, clients = []):
         if address[1] not in list(sequences.keys()):
             sequences[address[1]] = 0
-            
+        
         self.make_packages(file_text)
         
         for client in clients:
@@ -77,13 +80,13 @@ class TransmiterStateMachine:
         
         current_sequence = sequences[port]
         
-        print(f"[PRINT-DEBBUGGER] CHEGOU ACK-{received_sequence}", port)
+        # print(f"[PRINT-DEBBUGGER] CHEGOU ACK-{received_sequence}", port)
         
         if received_sequence != current_sequence or not checksum_receiver_checker(content, isack=True):
-            print("[PRINT-DEBBUGGER] Está corrompido ou é um ACK diferente")
+            # print("[PRINT-DEBBUGGER] Está corrompido ou é um ACK diferente")
             pass
         elif timers[address]["exploded"]:
-            print("[PRINT-DEBBUGGER] Timer estouro")
+            # print("[PRINT-DEBBUGGER] Timer estouro")
             pass
         else:
             timers[address]["ack"] = True
@@ -102,9 +105,9 @@ class ReceiverStateMachine:
     def send_ack(self, seq_number, address):
         data = f"/ACK-{seq_number}/".encode()
         formated_content = checksum_calculator(data, 16)
-        print(f"[PRINT-DEBBUGGER] Conteudo com checksum - {formated_content}")
+        # print(f"[PRINT-DEBBUGGER] Conteudo com checksum - {formated_content}")
         self.socket.sendto(formated_content, address)
-        print(f"[PRINT-DEBBUGGER] ENVIOU ACK-{seq_number}", address[1])
+        # print(f"[PRINT-DEBBUGGER] ENVIOU ACK-{seq_number}", address[1])
     
     def await_call(self, content, address):
         port = address[1]
@@ -112,14 +115,15 @@ class ReceiverStateMachine:
         if port not in list(sequences.keys()):
             sequences[port] = 0  
             
-        if checksum_receiver_checker(content, isack=False):
-            self.send_ack(0 if received_sequence == 1 else 1)
+        received_sequence = int(content.split("/PKT-")[1][0])
+            
+        if not checksum_receiver_checker(content, isack=False):
+            self.send_ack(0 if received_sequence == 1 else 1, address)
             return False
             
-        received_sequence = int(content.split("/PKT-")[1][0])
         current_sequence = sequences[port]
         
-        print(f"[PRINT-DEBBUGGER] CHEGOU PKT-{received_sequence}/ ", port)
+        # print(f"[PRINT-DEBBUGGER] CHEGOU PKT-{received_sequence}/ ", port)
 
         self.send_ack(received_sequence, address)
 

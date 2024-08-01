@@ -21,7 +21,7 @@ transmiter_state_machine = TransmiterStateMachine(server, "server")
 receiver_state_machine = ReceiverStateMachine(server)
 
 def receive_content():
-    # try:
+    try:
         output, clientaddress = server.recvfrom(buffer_size)
         content = output.decode()
         ip, port = clientaddress[0], clientaddress[1]
@@ -29,7 +29,7 @@ def receive_content():
         if "/ACK-" in content: 
             transmiter_state_machine.await_ack(content, clientaddress)
         elif "/PKT-" in content:
-            if receiver_state_machine.await_call(content, clientaddress) and checksum_receiver_checker(content, isack=False):            
+            if receiver_state_machine.await_call(content, clientaddress):            
                 if "saiu da sessão" in content:
                     clients.remove(clientaddress)
                     
@@ -54,11 +54,11 @@ def receive_content():
                     transmiter_state_machine.await_call(clientaddress, f"chat/receive-{port}.txt", clients)
                     print()
                     os.remove(f"chat/receive-{port}.txt")
-            else:
-                print("[PRINT-DEBBUGGER] Pacote corrompido")
+            # else:
+            #     print("[PRINT-DEBBUGGER] Pacote corrompido")
         
-    # except Exception as e:
-    #     print(f"Error: {e}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 while True:
     receive_content()

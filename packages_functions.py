@@ -46,7 +46,8 @@ def checksum_receiver_checker(data, isack=True):
     ref = ''
     for _ in range(len(checksum_result) - 2): ref += '1' # serve para fazer o valor de referência (tem que dar igual a 1 n vezes, sendo n o tamanho)
     
-    if choice([0,1]) == 1:
-        return False
+    # Probabilidade de estar corrompido
+    # if choice([0,1,2,3,4]) == 1:
+    #     return False
     
     return ref == checksum_result[2:]
