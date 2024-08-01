@@ -33,7 +33,7 @@ def receive_content():
             content = output.decode()
 
             if "/PKT-" in content:  
-                if receiver_state_machine.await_call(content, serveraddress) and checksum_receiver_checker(content, isack=False):
+                if receiver_state_machine.await_call(content, serveraddress):
                     content = content.split('/CRC-')[0]
                     write_txt(content, "a")
                 

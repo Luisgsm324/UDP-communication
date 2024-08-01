@@ -37,7 +37,7 @@ class TransmiterStateMachine:
                 "exploded": False
                 }
 
-        for _ in range(3):
+        while not timers[address]["ack"]:
             timers[address]["ack"] = False
             timers[address]["exploded"] = False
 
@@ -48,12 +48,9 @@ class TransmiterStateMachine:
                 
                 if timers[address]["ack"]:
                     timers[address]["exploded"] = False
-                    break
                 
             if not timers[address]["ack"]:
                 timers[address]["exploded"] = True
-            else:
-                break
     
     def send_package(self, address, index):
         print(f"[PRINT-DEBBUGER] ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
@@ -101,27 +98,30 @@ class TransmiterStateMachine:
 class ReceiverStateMachine:
     def __init__(self, socket: socket):
         self.socket = socket
-        
+    
+    def send_ack(self, seq_number, address):
+        data = f"/ACK-{seq_number}/".encode()
+        formated_content = checksum_calculator(data, 16)
+        print(f"[PRINT-DEBBUGGER] Conteudo com checksum - {formated_content}")
+        self.socket.sendto(formated_content, address)
+        print(f"[PRINT-DEBBUGGER] ENVIOU ACK-{seq_number}", address[1])
+    
     def await_call(self, content, address):
         port = address[1]
         
         if port not in list(sequences.keys()):
             sequences[port] = 0  
             
+        if checksum_receiver_checker(content, isack=False):
+            self.send_ack(0 if received_sequence == 1 else 1)
+            return False
+            
         received_sequence = int(content.split("/PKT-")[1][0])
         current_sequence = sequences[port]
         
         print(f"[PRINT-DEBBUGGER] CHEGOU PKT-{received_sequence}/ ", port)
 
-        # (Vitor) - Colocar apenas 1 encode, tem um dentro do checksum
-        data = f"/ACK-{received_sequence}/".encode()
-        
-        # Adicionando o checksum no ack
-        formated_content = checksum_calculator(data, 16)
-        print(f"[PRINT-DEBBUGGER] Conteudo com checksum - {formated_content}")
-        
-        self.socket.sendto(formated_content, address)
-        print(f"[PRINT-DEBBUGGER] ENVIOU ACK-{received_sequence}", port)
+        self.send_ack(received_sequence, address)
 
         if received_sequence == current_sequence:
             sequences[port] = 0 if current_sequence == 1 else 1
