@@ -2,7 +2,7 @@ from socket import *
 import threading
 import time
 import os
-from datetime import datetime
+
 from packages_functions import *
 from random import randint
 from classes.StateMachine import *
@@ -85,12 +85,12 @@ def handle_input_content():
                 print("Você não está conectado em nenhuma sessão.")
 
 def send_content(content):
-    # try:
+    try:
         write_txt(content, "w")
         transmiter_state_machine.await_call((SERVERNAME, SERVERPORT), f"chat/message-{port}.txt" ,[(SERVERNAME, SERVERPORT)])
         write_txt("", "w")
-    # except: 
-        # print("Error")
+    except: 
+        print("Error")
         
 # Entrar na sessão
 def enter_session(name):

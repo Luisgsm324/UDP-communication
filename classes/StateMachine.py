@@ -15,18 +15,15 @@ class TransmiterStateMachine:
         self.user_type = user_type
         
         self.time_limit = 0.03
-
-    def make_packages(self, file_text ):     
-        self.packages = []          
-        with open(file_text, mode="rb") as file1:
-            while True:
-                data = file1.read(500)
-                
-                if not data: break
-
-                formated_content = checksum_calculator(data, 16)
-                self.packages.append(formated_content)
-
+    
+    def send_package(self, address, index):
+        # print(f"[PRINT-DEBBUGER] ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
+        package: bytes = self.packages[index]
+        
+        package = f"{package.decode()}/PKT-{sequences[address[1]]}/".encode()
+        
+        self.socket.sendto(package, address)
+    
     def timer_receive_ack(self, address):
         repeat_times = 10
         interval = self.time_limit / repeat_times
@@ -54,15 +51,18 @@ class TransmiterStateMachine:
                 
             if not timers[address]["ack"]:
                 timers[address]["exploded"] = True
-    
-    def send_package(self, address, index):
-        # print(f"[PRINT-DEBBUGER] ENVIOU PKT-{sequences[address[1]]} e o PACKAGE é {index}", address[1])
-        package: bytes = self.packages[index]
-        
-        package = f"{package.decode()}/PKT-{sequences[address[1]]}/".encode()
-        
-        self.socket.sendto(package, address)
-    
+                
+    def make_packages(self, file_text ):     
+        self.packages = []          
+        with open(file_text, mode="rb") as file1:
+            while True:
+                data = file1.read(500)
+                
+                if not data: break
+
+                formated_content = checksum_calculator(data, 16)
+                self.packages.append(formated_content)
+
     def await_call(self, address, file_text, clients = []):
         if address[1] not in list(sequences.keys()):
             sequences[address[1]] = 0
